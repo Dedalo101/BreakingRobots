@@ -8,15 +8,17 @@ precision mediump float;
 #endif
 uniform float u_time;
 uniform vec2 u_resolution;
+float random(vec2 st) {
+  return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-  // Datamatics-style: white lines, flicker, and glitch
-  float lineY = step(0.92, fract(uv.y * 30.0 + sin(u_time * 1.5) * 0.5));
-  float lineX = step(0.92, fract(uv.x * 60.0 + cos(u_time * 2.0 + uv.y * 10.0)));
-  float flicker = 0.5 + 0.5 * sin(u_time * 8.0 + uv.x * 40.0);
-  float glitch = step(0.85, fract(uv.x * 120.0 + sin(u_time * 12.0 + uv.y * 40.0)));
-  float grid = max(lineY, lineX);
-  float color = max(grid, glitch * flicker);
+  float yLines = step(0.95, fract(uv.y * 40.0));
+  float xLines = step(0.98, fract(uv.x * 80.0));
+  float glitch = step(0.8, random(vec2(u_time * 2.0, uv.y * 100.0 + u_time * 10.0)));
+  float flicker = step(0.7, random(vec2(u_time * 10.0, uv.x * 200.0)));
+  float color = max(yLines, xLines);
+  color = max(color, glitch * flicker);
   gl_FragColor = vec4(vec3(color), 1.0);
 }
 `;
