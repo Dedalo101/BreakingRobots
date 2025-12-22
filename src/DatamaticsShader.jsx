@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 
 
+
 const fragShader = `
 #ifdef GL_ES
 precision mediump float;
@@ -20,12 +21,15 @@ void main() {
 }
 `;
 
+
 function createShader(gl, type, source) {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    throw new Error(gl.getShaderInfoLog(shader));
+    const msg = gl.getShaderInfoLog(shader);
+    console.error('Shader compile error:', msg, '\nSource:', source);
+    throw new Error(msg);
   }
   return shader;
 }
@@ -54,7 +58,10 @@ export default function DatamaticsShader() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const gl = canvas.getContext("webgl");
-    if (!gl) return;
+    if (!gl) {
+      console.error('WebGL not supported');
+      return;
+    }
     // Setup GLSL program
     const program = createProgram(gl, vertexShader, fragShader);
     gl.useProgram(program);
@@ -81,8 +88,11 @@ export default function DatamaticsShader() {
     const uRes = gl.getUniformLocation(program, "u_resolution");
     let running = true;
     function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
       gl.viewport(0, 0, canvas.width, canvas.height);
     }
     resize();
